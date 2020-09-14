@@ -22,7 +22,7 @@ def get_coincidence_index_from(text):
     #Calcula o índice de coincidência
     return sum(frequences[char] * (frequences[char] - 1) for char in alphabet) / (text_size * (text_size-1))
 
-IC = "%.3f" % get_coincidence_index_from('SOTHATCIPHERTEXTLOOKSLIKETHIS')
+IC = "%.3f" % get_coincidence_index_from('TESTTESIIRJFNE')
 print(IC)
 
 

@@ -1,6 +1,6 @@
 import collections
 import math
-import numpy as np
+import string
 
 #https://docs.python.org/2/library/collections.html
 #https://en.wikipedia.org/wiki/Index_of_coincidence
@@ -69,9 +69,8 @@ english = {
 
 #Variáveis globais
 coincidence_index_pt = 0.072723
-coincidence_index_en = 0.0686
+#coincidence_index_en = 0.0686
 max_key_size = 26
-locale = 0.0
 
 #Implementa a fórmula do índice de coincidência
 def get_coincidence_index_from(text):
@@ -81,16 +80,16 @@ def get_coincidence_index_from(text):
     frequences = collections.Counter(text)
     
     #Calcula o índice de coincidência e define o resultado para três casas decimais após a vírgula
-    return float('%.3f' % (sum(freq * (freq-1) for freq in frequences.values()) / (text_size * (text_size-1))))
+    return float( '%.6f' % (sum(freq * (freq-1) for freq in frequences.values()) / (text_size * (text_size-1))))
 
 #Esta função gera as substrings do texto e calcula o índice de coincidência
 def get_ioc_table_from(text):
 
     #Normaliza o texto (Remove espaços / deixa o texto em uppercase)
-    text = text.replace(' ', '').upper()
+    text = text.replace(' ', '').lower()
 
     #Representa um iterável(1 - 26) com todos os tamanhos de chaves possívels
-    probable_keys = range(1, max_key_size + 1)
+    probable_keys = range(max_key_size)
     
     #Dicionário para armazenar os candidatos de tamanhos de chave
     #Cada candidato mapeia para um conjunto de índices de coincidência
@@ -121,14 +120,48 @@ def get_ioc_table_from(text):
     return coincidence_index_list
 
 def find_key_size(text, k):
-    for i in range(len(text)):
-        for j in range(i):
-            print(text[j::key])
 
-f = open("english.txt", "r").read()
+    password = ''
 
-tes = get_ioc_table_from(f)
+    for i in range(k):
 
-key,_ = min(tes.items(), key = lambda kv : abs(sum(kv[1]) / len(kv[1]) - coincidence_index_en))
-print(key)
-#find_key_size(f, key)
+        # Monta a string com os n-ésimos caracteres
+        substring = text[i::k]
+
+        #Aplica a análise de frequência
+        frequency = collections.Counter(substring)
+
+        #Obtém o caractere de maior frequência
+        scores = sorted(frequency.items(), reverse = True, key=lambda item: item[1])
+
+        #print(scores)
+        #Obtém o caractere da chave na i-ésima posição
+        first_offset = string.ascii_lowercase.index(scores[0][0])
+        second_offset = string.ascii_lowercase.index(scores[1][0])
+
+        password += string.ascii_lowercase[min(first_offset, second_offset)]
+
+        if len(password) >= key:
+            break
+
+        #0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
+        #A B C D E F G H I J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z
+    
+    return password
+
+f = open("cipher7.txt", "r").read()
+
+print('attempt to build the index of coincidence table from stream...')
+result = get_ioc_table_from(f)
+
+print('attempt to get the password... ', end='')
+
+# Cuidar o tamanho da chave que às vezes vem errado
+key,_ = min(result.items(), key = lambda kv : abs(sum(kv[1]) / len(kv[1]) - coincidence_index_pt))
+
+print('key is probably', key)
+
+print('attempt to get the plain text password... ', end='')
+pw = find_key_size(f, key)
+
+print('figured:', pw)
